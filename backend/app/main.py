@@ -3,6 +3,8 @@ from app.api.monitors import router as monitors_router
 from app.api.health import router as health_router
 from fastapi import FastAPI
 from sqlalchemy import text
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from app.worker.checker import run_checks
 
 from app.core.db import engine
 
@@ -13,8 +15,17 @@ async def lifespan(app: FastAPI):
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
     print("Database connected!")
+
+    # Start the background scheduler
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(run_checks, "interval", seconds=60, id="url_checker")
+    scheduler.start()
+    print("Scheduler started - checking URLs every 60 seconds")
+
     yield
-    # Shutdown: cleanup (nothing for now)
+
+    # Shutdown: stop scheduler
+    scheduler.shutdown()
     print("Shutting down...")
 
 
