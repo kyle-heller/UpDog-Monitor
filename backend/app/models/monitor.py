@@ -1,19 +1,10 @@
-from __future__ import annotations
-
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from sqlalchemy import Boolean, DateTime, Integer, String
 
 from app.models import Base
-
-if TYPE_CHECKING:
-    from app.models.result import CheckResult
-
-
-def utc_now():
-    return datetime.now(timezone.utc)
 
 
 class Monitor(Base):
@@ -24,8 +15,8 @@ class Monitor(Base):
     url: Mapped[str] = mapped_column(String(2048))
     interval_seconds: Mapped[int] = mapped_column(Integer, default=60)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=utc_now, onupdate=utc_now
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
-    check_results: Mapped[list["CheckResult"]] = relationship(back_populates="monitor", cascade="all, delete-orphan")
+    check_results: Mapped[list["CheckResult"]] = relationship(back_populates="monitor")

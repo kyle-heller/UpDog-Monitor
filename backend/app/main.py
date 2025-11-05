@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
-
+from app.api.monitors import router as monitors_router
+from app.api.health import router as health_router
 from fastapi import FastAPI
 from sqlalchemy import text
 
@@ -23,6 +24,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.include_router(monitors_router, prefix="/api")
+app.include_router(health_router, prefix="/api")
 
 
 @app.get("/")
