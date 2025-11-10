@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.worker.checker import run_checks
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.db import engine
 
 
@@ -34,6 +34,14 @@ app = FastAPI(
     description="URL uptime monitoring service",
     version="0.1.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Frontend dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(monitors_router, prefix="/api")
