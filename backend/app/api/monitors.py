@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.models.result import CheckResult
 from app.api.schemas import MonitorCreate, MonitorResponse, MonitorUpdate
 from app.core.db import get_db
 from app.models.monitor import Monitor
@@ -63,6 +63,26 @@ async def update_monitor(
     await db.commit()
     await db.refresh(monitor)
     return monitor
+
+
+@router.get("/{monitor_id}/results")
+async def get_monitor_results(
+    monitor_id: int, limit: int = 20, db: AsyncSession = Depends(get_db)
+):
+    """Get recent check results for a monitor."""
+    # First verify the monitor exists
+    monitor = await db.get(Monitor, monitor_id)
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+
+    # Get recent results, newest first
+    result = await db.execute(
+        select(CheckResult)
+        .where(CheckResult.monitor_id == monitor_id)
+        .order_by(CheckResult.checked_at.desc())
+        .limit(limit)
+    )
+    return result.scalars().all()
 
 
 @router.delete("/{monitor_id}", status_code=204)
