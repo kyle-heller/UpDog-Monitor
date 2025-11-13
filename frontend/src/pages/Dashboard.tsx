@@ -26,6 +26,7 @@ function Dashboard() {
   return (
     <div>
       <h1>Dashboard</h1>
+      <Link to="/monitors/new">+ Add Monitor</Link>
       {monitors.length === 0 ? (
         <p>No monitors yet.</p>
       ) : (
