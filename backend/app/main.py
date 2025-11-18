@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.worker.checker import run_checks
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.db import engine
 
@@ -46,6 +47,8 @@ app.add_middleware(
 
 app.include_router(monitors_router, prefix="/api")
 app.include_router(health_router, prefix="/api")
+
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/")
