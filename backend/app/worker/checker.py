@@ -8,6 +8,13 @@ from sqlalchemy import select
 from app.core.db import async_session
 from app.models.monitor import Monitor
 from app.models.result import CheckResult
+from app.core.metrics import (
+    updog_checks_total,
+    updog_check_duration_seconds,
+    updog_check_errors_total,
+    updog_last_check_up,
+    updog_monitors_total,
+)
 
 
 async def check_url(monitor: Monitor) -> CheckResult:
@@ -18,15 +25,27 @@ async def check_url(monitor: Monitor) -> CheckResult:
             response = await client.get(str(monitor.url))
             elapsed_ms = int((datetime.utcnow() - start).total_seconds() * 1000)
 
-            return CheckResult(
+            result = CheckResult(
                 monitor_id=monitor.id,
                 status_code=response.status_code,
                 response_time_ms=elapsed_ms,
                 is_up=response.status_code < 400,
                 checked_at=datetime.utcnow(),
             )
+
+            # Record metrics
+            status = "up" if result.is_up else "down"
+            updog_checks_total.labels(monitor_id=str(monitor.id), status=status).inc()
+            updog_check_duration_seconds.labels(monitor_id=str(monitor.id)).observe(
+                elapsed_ms / 1000
+            )
+            updog_last_check_up.labels(
+                monitor_id=str(monitor.id), monitor_name=monitor.name
+            ).set(1 if result.is_up else 0)
+
+            return result
         except Exception as e:
-            return CheckResult(
+            result = CheckResult(
                 monitor_id=monitor.id,
                 status_code=None,
                 response_time_ms=None,
@@ -35,6 +54,16 @@ async def check_url(monitor: Monitor) -> CheckResult:
                 error_message=str(e),
             )
 
+            # Record error metrics
+            error_type = type(e).__name__
+            updog_checks_total.labels(monitor_id=str(monitor.id), status="down").inc()
+            updog_check_errors_total.labels(error_type=error_type).inc()
+            updog_last_check_up.labels(
+                monitor_id=str(monitor.id), monitor_name=monitor.name
+            ).set(0)
+
+            return result
+
 
 async def run_checks():
     """Load all active monitors and check them."""
@@ -42,6 +71,9 @@ async def run_checks():
         # Get all active monitors
         result = await db.execute(select(Monitor).where(Monitor.is_active == True))
         monitors = result.scalars().all()
+
+        # Update monitor count gauge
+        updog_monitors_total.labels(state="active").set(len(monitors))
 
         if not monitors:
             print("No active monitors to check")
