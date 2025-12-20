@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="UpDog Monitor",
     description="URL uptime monitoring service",
-    version="0.5.0",
+    version="0.6.0",
     lifespan=lifespan,
 )
 
