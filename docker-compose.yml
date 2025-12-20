@@ -25,6 +25,7 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/updog_dev
+      # DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/...
     depends_on:
       db:
         condition: service_healthy
