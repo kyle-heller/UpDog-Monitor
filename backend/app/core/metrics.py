@@ -37,3 +37,10 @@ updog_last_check_up = Gauge(
     "Current status of monitor (1=up, 0=down)",
     ["monitor_id", "monitor_name"],
 )
+
+# Counter for alerts sent by type (down/recovered)
+updog_alerts_total = Counter(
+    "updog_alerts_total",
+    "Total alerts sent",
+    ["alert_type"],  # "down" or "recovered"
+)

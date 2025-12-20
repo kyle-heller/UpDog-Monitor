@@ -3,7 +3,7 @@ import asyncio
 from datetime import datetime
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, desc
 
 from app.core.db import async_session
 from app.models.monitor import Monitor
@@ -15,6 +15,24 @@ from app.core.metrics import (
     updog_last_check_up,
     updog_monitors_total,
 )
+from app.core.notifications import send_discord_alert
+
+
+async def get_previous_state(db, monitor_id: int) -> bool | None:
+    """
+    Get the previous check state for a monitor.
+
+    Returns:
+        True if was up, False if was down, None if no previous check
+    """
+    result = await db.execute(
+        select(CheckResult)
+        .where(CheckResult.monitor_id == monitor_id)
+        .order_by(desc(CheckResult.checked_at))
+        .limit(1)
+    )
+    last_check = result.scalar_one_or_none()
+    return last_check.is_up if last_check else None
 
 
 async def check_url(monitor: Monitor) -> CheckResult:
@@ -81,13 +99,48 @@ async def run_checks():
 
         print(f"Checking {len(monitors)} monitors...")
 
+        # Get previous states BEFORE running checks (need db access)
+        previous_states = {}
+        for monitor in monitors:
+            previous_states[monitor.id] = await get_previous_state(db, monitor.id)
+
         # Check all URLs concurrently
         tasks = [check_url(monitor) for monitor in monitors]
         results = await asyncio.gather(*tasks)
 
-        # Save all results
-        for check_result in results:
+        # Save results and check for state changes
+        alert_tasks = []
+        for monitor, check_result in zip(monitors, results):
             db.add(check_result)
+
+            # Detect state change and send alert
+            previous_up = previous_states.get(monitor.id)
+
+            # State change detection:
+            # - previous_up is None: first check, no alert
+            # - previous_up == True and now False: went DOWN → alert
+            # - previous_up == False and now True: RECOVERED → alert
+            if previous_up is not None and previous_up != check_result.is_up:
+                print(
+                    f"State change for {monitor.name}: "
+                    f"{'UP' if previous_up else 'DOWN'} → "
+                    f"{'UP' if check_result.is_up else 'DOWN'}"
+                )
+                # Queue alert (don't await yet - send concurrently)
+                alert_tasks.append(
+                    send_discord_alert(
+                        monitor_name=monitor.name,
+                        url=str(monitor.url),
+                        is_up=check_result.is_up,
+                        error_message=check_result.error_message,
+                        response_time_ms=check_result.response_time_ms,
+                    )
+                )
 
         await db.commit()
         print(f"Saved {len(results)} check results")
+
+        # Send all alerts concurrently
+        if alert_tasks:
+            await asyncio.gather(*alert_tasks)
+            print(f"Sent {len(alert_tasks)} alerts")

@@ -33,6 +33,8 @@ services:
       # Override database_url to point to "db" service (Docker networking)
       # In Docker Compose, services reach each other by service name
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/updog_dev
+      # Discord webhook for alerts (optional - get from Discord Server Settings → Integrations → Webhooks)
+      # DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/your-webhook-here
     depends_on:
       db:
         condition: service_healthy  # Wait for db healthcheck to pass
