@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from app.api.monitors import router as monitors_router
 from app.api.health import router as health_router
+from app.api.slo import router as slo_router
 from fastapi import FastAPI
 from sqlalchemy import text
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -33,13 +34,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="UpDog Monitor",
     description="URL uptime monitoring service",
-    version="0.6.0",
+    version="0.7.0",
     lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend dev server
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Dev + Docker
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,6 +48,7 @@ app.add_middleware(
 
 app.include_router(monitors_router, prefix="/api")
 app.include_router(health_router, prefix="/api")
+app.include_router(slo_router, prefix="/api")
 
 Instrumentator().instrument(app).expose(app)
 
