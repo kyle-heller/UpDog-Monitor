@@ -176,11 +176,10 @@ def calculate_error_budget(
     burn_rate = budget_consumed / error_budget_total if error_budget_total > 0 else 0
 
     # Hours until exhausted (if continuing at current rate)
-    window_hours = window_days * 24
-    if burn_rate > 0:
-        total_budget_hours = error_budget_total * window_hours
+    if burn_rate > 0 and error_budget_total > 0:
+        window_hours = window_days * 24
         remaining_hours = (budget_remaining / error_budget_total) * window_hours
-        hours_until_exhausted = remaining_hours / burn_rate if burn_rate > 0 else None
+        hours_until_exhausted = remaining_hours / burn_rate
     else:
         hours_until_exhausted = None
 
