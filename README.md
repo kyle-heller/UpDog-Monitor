@@ -2,108 +2,75 @@
 
 > "What's updog?" - "Not much, what's up with you?"
 
-A URL uptime monitoring service that tracks availability and response times, with Discord alerts when things go down.
-
-**Status:** v0.1 (Backend API in development)
+A URL uptime monitoring service with Prometheus metrics, Discord alerts, and SLO tracking.
 
 ## Features
 
-- [ ] Monitor URLs for uptime
-- [ ] Track response times
-- [ ] View check history
-- [ ] Discord alerts on downtime
-- [ ] Prometheus metrics
-- [ ] Web dashboard
+- Monitor URLs for uptime and response time
+- Prometheus metrics endpoint (`/metrics`)
+- Grafana dashboard with pre-built panels
+- Discord alerts on state changes (DOWN/RECOVERED)
+- SLO tracking with error budgets
+
+## Quick Start
+
+```bash
+# Start everything
+docker compose up --build
+
+# Or for development (run API locally)
+docker compose up -d db prometheus grafana
+cd backend && uvicorn app.main:app --reload
+```
+
+**URLs:**
+- Frontend: http://localhost:3000
+- API docs: http://localhost:8000/docs
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3001 (admin/admin)
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Backend | FastAPI (Python) |
+| Backend | FastAPI (Python 3.12) |
+| Frontend | React + Vite |
 | Database | PostgreSQL |
-| ORM | SQLAlchemy (async) |
-| Frontend | React (coming in v0.2) |
-| Containers | Docker Compose |
-| Metrics | Prometheus |
-
-## Quick Start
-
-### Prerequisites
-
-- Python 3.12+ (via pyenv)
-- Docker & Docker Compose
-- Node 22+ (for frontend, later)
-
-### Setup
-
-```bash
-# Clone the repo
-git clone https://github.com/[username]/updog-monitor.git
-cd updog-monitor
-
-# Copy environment file
-cp .env.example .env
-
-# Start the database
-docker-compose up -d
-
-# Install Python dependencies
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# Run the API
-uvicorn app.main:app --reload
-```
-
-### Verify It's Working
-
-```bash
-# Health check
-curl http://localhost:8000/api/health
-
-# API docs
-open http://localhost:8000/docs
-```
+| Metrics | Prometheus + Grafana |
+| Alerts | Discord webhooks |
 
 ## Project Structure
 
 ```
 updog-monitor/
-├── backend/                # FastAPI application
+├── backend/
 │   ├── app/
-│   │   ├── main.py         # App entry point
-│   │   ├── api/            # Route handlers
-│   │   ├── models/         # SQLAlchemy models
-│   │   ├── core/           # Config, database setup
-│   │   └── worker/         # Background check worker
-│   └── requirements.txt
-├── frontend/               # React app (v0.2+)
-├── docs/                   # Documentation
-│   ├── PROJECT_CHARTER.md
-│   └── architecture/
+│   │   ├── api/           # Route handlers
+│   │   ├── core/          # Config, db, metrics, SLO
+│   │   ├── models/        # SQLAlchemy models
+│   │   └── worker/        # Background checker
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   └── Dockerfile
+├── docs/
+├── grafana/               # Dashboard provisioning
 ├── docker-compose.yml
-├── .env.example
-└── README.md
+└── prometheus.yml
 ```
+
+## Configuration
+
+Set via environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | localhost |
+| `DISCORD_WEBHOOK_URL` | Discord webhook for alerts | (disabled) |
 
 ## Documentation
 
-- [Project Charter](docs/PROJECT_CHARTER.md) - Goals, scope, milestones
-- [Architecture Overview](docs/architecture/overview.md) - System design
-- [Local Development](docs/guides/local-development.md) - Setup guide
-
-## Roadmap
-
-See [PROJECT_CHARTER.md](docs/PROJECT_CHARTER.md) for full milestone breakdown.
-
-| Version | Status | Description |
-|---------|--------|-------------|
-| 0.1 | 🚧 In Progress | Backend API + worker |
-| 0.2 | ⏳ Planned | React frontend |
-| 0.3 | ⏳ Planned | History & charts |
-| 1.0 | ⏳ Planned | Azure AKS deployment |
+- [Architecture](docs/architecture/) - System design
 
 ## License
 
