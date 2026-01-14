@@ -45,7 +45,6 @@ Built as a portfolio project to demonstrate full-stack development and SRE pract
 | Containers | Docker Compose | Easy local development |
 | Metrics | Prometheus | SRE standard |
 | Alerting | Discord webhooks | Simple, free |
-| Orchestration | Kubernetes (k3d locally, AKS for prod) | Industry standard |
 
 ## Milestones
 
@@ -53,21 +52,21 @@ Built as a portfolio project to demonstrate full-stack development and SRE pract
 |---------|-------------|
 | 0.1 | Backend API, worker pings URLs, stores results |
 | 0.2 | Basic React frontend, view monitors and status |
-| 0.3 | History view, simple charts |
-| 0.4 | Prometheus /metrics endpoint |
+| 0.3 | History view, simple charts, demo seed script |
+| 0.4 | Prometheus /metrics endpoint, Grafana dashboard |
 | 0.5 | Docker Compose full stack |
-| 0.6 | Alerting (Discord webhook) |
-| 0.7 | Auth (login, user accounts) |
-| 0.8 | Local Kubernetes (k3d) + Helm chart |
-| 0.9 | SLO dashboard, runbooks, chaos testing |
-| 1.0 | Azure AKS deployment (live demo) |
+| 0.6 | Alerting (Discord webhook on state change) |
+| 0.7 | SLO calculations, error budgets, runbooks |
+| 0.8 | Cleanup, documentation updates |
+| 0.9 | Deploy to Railway/Render |
+| 1.0 | Polish, testing, production ready |
 
 ## Success Criteria
 
 - Clean GitHub repo with professional commit history
 - Comprehensive documentation (architecture, guides, runbooks)
-- Working live demo deployed on Azure AKS
-- Confidence to contribute to production codebases
+- Working live demo deployed to cloud (Railway/Render)
+- Confidence to discuss SRE practices in interviews
 
 ## Links
 
