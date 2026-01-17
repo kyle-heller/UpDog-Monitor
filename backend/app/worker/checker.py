@@ -1,6 +1,6 @@
 # [APScheduler + httpx + SQLAlchemy] - Background URL checker
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 
 import httpx
 from sqlalchemy import select, desc
@@ -39,16 +39,16 @@ async def check_url(monitor: Monitor) -> CheckResult:
     """Check a single URL and return the result."""
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
-            start = datetime.utcnow()
+            start = datetime.now(timezone.utc)
             response = await client.get(str(monitor.url))
-            elapsed_ms = int((datetime.utcnow() - start).total_seconds() * 1000)
+            elapsed_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
 
             result = CheckResult(
                 monitor_id=monitor.id,
                 status_code=response.status_code,
                 response_time_ms=elapsed_ms,
                 is_up=response.status_code < 400,
-                checked_at=datetime.utcnow(),
+                checked_at=datetime.now(timezone.utc),
             )
 
             # Record metrics
@@ -68,7 +68,7 @@ async def check_url(monitor: Monitor) -> CheckResult:
                 status_code=None,
                 response_time_ms=None,
                 is_up=False,
-                checked_at=datetime.utcnow(),
+                checked_at=datetime.now(timezone.utc),
                 error_message=str(e),
             )
 

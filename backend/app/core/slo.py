@@ -14,7 +14,7 @@ Example:
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -67,7 +67,7 @@ async def calculate_availability_slo(
 
     Returns: (availability_ratio, successful_checks, total_checks)
     """
-    since = datetime.utcnow() - timedelta(days=window_days)
+    since = datetime.now(timezone.utc) - timedelta(days=window_days)
 
     # Count total checks in window
     total_result = await db.execute(
@@ -108,7 +108,7 @@ async def calculate_latency_slo(
 
     Returns: (ratio_under_target, fast_checks, total_checks_with_latency)
     """
-    since = datetime.utcnow() - timedelta(days=window_days)
+    since = datetime.now(timezone.utc) - timedelta(days=window_days)
 
     # Count checks with latency data (excludes failed checks with no response time)
     total_result = await db.execute(
