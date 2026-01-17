@@ -1,3 +1,5 @@
+APP_VERSION = "0.8.0"
+
 from pydantic_settings import BaseSettings
 
 

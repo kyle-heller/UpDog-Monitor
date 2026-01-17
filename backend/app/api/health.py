@@ -3,6 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_db
+from app.core.config import APP_VERSION
 
 router = APIRouter(tags=["health"])
 
