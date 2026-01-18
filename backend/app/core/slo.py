@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,7 +41,7 @@ async def calculate_availability_slo(
     window_days: int = SLO_WINDOW_DAYS,
 ) -> tuple[float, int, int]:
     """Returns (availability_ratio, successful_checks, total_checks)."""
-    since = datetime.utcnow() - timedelta(days=window_days)
+    since = datetime.now(timezone.utc) - timedelta(days=window_days)
 
     total_result = await db.execute(
         select(func.count(CheckResult.id))
@@ -76,7 +76,7 @@ async def calculate_latency_slo(
     target_ms: int = LATENCY_SLO_MS,
 ) -> tuple[float, int, int]:
     """Returns (ratio_under_target, fast_checks, total_checks_with_latency)."""
-    since = datetime.utcnow() - timedelta(days=window_days)
+    since = datetime.now(timezone.utc) - timedelta(days=window_days)
 
     total_result = await db.execute(
         select(func.count(CheckResult.id))
