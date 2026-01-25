@@ -31,8 +31,8 @@ jobs:
       - name: Lint with ruff
         run: ruff check .
 
-      - name: Check imports
-        run: python -c "from app.main import app; print('Import OK')"
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
 
   frontend:
     runs-on: ubuntu-latest
