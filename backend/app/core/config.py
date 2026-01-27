@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -7,8 +8,18 @@ class Settings(BaseSettings):
     )
 
     # Discord webhook for alerts (optional - alerts disabled if not set)
-    # Get this from Discord: Server Settings → Integrations → Webhooks → New Webhook
     discord_webhook_url: str | None = None
+
+    # Port for the server (Railway sets this via PORT env var)
+    port: int = 8000
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def fix_database_url(cls, v: str) -> str:
+        # Railway provides postgresql://, we need postgresql+asyncpg://
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
 
     class Config:
         env_file = ".env"

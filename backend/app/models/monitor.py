@@ -1,5 +1,5 @@
 # [SQLAlchemy] - Monitor model
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -9,7 +9,7 @@ from app.models import Base
 
 
 def utc_now():
-    return datetime.now(timezone.utc)
+    return datetime.utcnow()
 
 
 class Monitor(Base):

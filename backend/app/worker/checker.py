@@ -48,7 +48,7 @@ async def check_url(monitor: Monitor) -> CheckResult:
                 status_code=response.status_code,
                 response_time_ms=elapsed_ms,
                 is_up=response.status_code < 400,
-                checked_at=datetime.now(timezone.utc),
+                checked_at=datetime.utcnow(),
             )
 
             # Record metrics
@@ -68,7 +68,7 @@ async def check_url(monitor: Monitor) -> CheckResult:
                 status_code=None,
                 response_time_ms=None,
                 is_up=False,
-                checked_at=datetime.now(timezone.utc),
+                checked_at=datetime.utcnow(),
                 error_message=str(e),
             )
 
