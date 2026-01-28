@@ -22,6 +22,7 @@ async def test_health_endpoint(client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.db_required
 async def test_list_monitors_endpoint(client):
     """GET /api/monitors returns a list."""
     response = await client.get("/api/monitors")
@@ -33,6 +34,7 @@ async def test_list_monitors_endpoint(client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.db_required
 async def test_get_nonexistent_monitor_returns_404(client):
     """GET /api/monitors/{id} returns 404 for missing monitor."""
     response = await client.get("/api/monitors/99999")

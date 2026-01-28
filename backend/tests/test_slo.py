@@ -80,6 +80,7 @@ class TestSLOEndpoint:
         assert "window_days" in data
 
     @pytest.mark.asyncio
+    @pytest.mark.db_required
     async def test_slo_monitor_endpoint_404(self, client):
         """GET /api/slo/monitors/{id} returns 404 for missing monitor."""
         response = await client.get("/api/slo/monitors/99999")
