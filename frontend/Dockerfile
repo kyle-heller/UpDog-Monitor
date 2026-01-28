@@ -2,7 +2,6 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package files first (layer caching, same as Python)
 COPY package*.json ./
 
 RUN npm ci
@@ -10,16 +9,14 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# nginx:alpine is tiny (~20MB) and perfect for serving static files
 FROM nginx:alpine
 
-# Copy the built files from Stage 1 into nginx's serve directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy custom nginx config (we'll create this next)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
-# Expose port 80
-EXPOSE 80
+# Railway sets PORT dynamically
+ENV PORT=80
 
-# nginx runs automatically, no CMD needed
+# nginx:alpine with /etc/nginx/templates/ auto-runs envsubst on startup
+EXPOSE $PORT
