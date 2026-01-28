@@ -1,4 +1,7 @@
-// Types that match backend's Pydantic schemas                                                                            
+// API base URL - empty for local dev (uses proxy), full URL for production
+const API_BASE = import.meta.env.VITE_API_URL || ''
+
+// Types that match backend's Pydantic schemas
 export interface Monitor {                                                                                                
   id: number                                                                                                              
   name: string                                                                                                            
@@ -21,7 +24,7 @@ export interface CheckResult {
                                                                                                                           
 // Fetch all monitors from the backend                                                                                    
 export async function getMonitors(): Promise<Monitor[]> {                                                                 
-  const response = await fetch('/api/monitors')                                                                           
+  const response = await fetch(`${API_BASE}/api/monitors`)                                                                           
   if (!response.ok) {                                                                                                     
     throw new Error('Failed to fetch monitors')                                                                           
   }                                                                                                                       
@@ -30,7 +33,7 @@ export async function getMonitors(): Promise<Monitor[]> {
                                                                                                                           
 // Fetch a single monitor by ID                                                                                           
 export async function getMonitor(id: string): Promise<Monitor> {                                                          
-  const response = await fetch(`/api/monitors/${id}`)                                                                     
+  const response = await fetch(`${API_BASE}/api/monitors/${id}`)                                                                     
   if (!response.ok) {                                                                                                     
     throw new Error('Failed to fetch monitor')                                                                            
   }                                                                                                                       
@@ -39,7 +42,7 @@ export async function getMonitor(id: string): Promise<Monitor> {
                                                                                                                           
 // Fetch check results for a monitor                                                                                      
 export async function getMonitorResults(id: string, limit = 20): Promise<CheckResult[]> {                                 
-  const response = await fetch(`/api/monitors/${id}/results?limit=${limit}`)                                              
+  const response = await fetch(`${API_BASE}/api/monitors/${id}/results?limit=${limit}`)                                              
   if (!response.ok) {                                                                                                     
     throw new Error('Failed to fetch results')                                                                            
   }                                                                                                                       
@@ -52,7 +55,7 @@ export async function getMonitorResults(id: string, limit = 20): Promise<CheckRe
     url: string                                                                                                             
     interval_seconds?: number                                                                                               
   }): Promise<Monitor> {                                                                                                    
-    const response = await fetch('/api/monitors', {                                                                         
+    const response = await fetch(`${API_BASE}/api/monitors`, {                                                                         
       method: 'POST',                                                                                                       
       headers: { 'Content-Type': 'application/json' },                                                                      
       body: JSON.stringify(data),                                                                                           
@@ -73,7 +76,7 @@ export async function updateMonitor(
     is_active?: boolean                                                                                                   
   }                                                                                                                       
 ): Promise<Monitor> {                                                                                                     
-  const response = await fetch(`/api/monitors/${id}`, {                                                                   
+  const response = await fetch(`${API_BASE}/api/monitors/${id}`, {                                                                   
     method: 'PUT',                                                                                                        
     headers: { 'Content-Type': 'application/json' },                                                                      
     body: JSON.stringify(data),                                                                                           
@@ -86,10 +89,10 @@ export async function updateMonitor(
                                                                                                                           
 // Delete a monitor                                                                                                       
 export async function deleteMonitor(id: string): Promise<void> {                                                          
-  const response = await fetch(`/api/monitors/${id}`, {                                                                   
+  const response = await fetch(`${API_BASE}/api/monitors/${id}`, {                                                                   
     method: 'DELETE',                                                                                                     
   })                                                                                                                      
   if (!response.ok) {                                                                                                     
     throw new Error('Failed to delete monitor')                                                                           
   }                                                                                                                       
-}
+}// Railway build trigger

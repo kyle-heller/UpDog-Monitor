@@ -87,7 +87,7 @@ async def run_checks():
     """Load all active monitors and check them."""
     async with async_session() as db:
         # Get all active monitors
-        result = await db.execute(select(Monitor).where(Monitor.is_active == True))
+        result = await db.execute(select(Monitor).where(Monitor.is_active.is_(True)))
         monitors = result.scalars().all()
 
         # Update monitor count gauge

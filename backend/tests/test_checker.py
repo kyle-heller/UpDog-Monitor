@@ -2,7 +2,6 @@
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timezone
 
 from app.worker.checker import check_url
 

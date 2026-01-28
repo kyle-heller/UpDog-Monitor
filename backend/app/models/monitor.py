@@ -1,11 +1,16 @@
 # [SQLAlchemy] - Monitor model
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from sqlalchemy import Boolean, DateTime, Integer, String
 
 from app.models import Base
+
+if TYPE_CHECKING:
+    from app.models.result import CheckResult
 
 
 def utc_now():

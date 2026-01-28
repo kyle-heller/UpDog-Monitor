@@ -88,7 +88,7 @@ async def calculate_availability_slo(
         .where(and_(
             CheckResult.monitor_id == monitor_id,
             CheckResult.checked_at >= since,
-            CheckResult.is_up == True,
+            CheckResult.is_up.is_(True),
         ))
     )
     successful_checks = success_result.scalar() or 0
