@@ -1,4 +1,5 @@
 // API base URL - empty for local dev (uses proxy), full URL for production
+// FIXME: error messages are generic, should parse response body for details
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export interface Monitor {                                                                                                
