@@ -44,7 +44,11 @@ async def _do_check(monitor: Monitor, client: httpx.AsyncClient) -> CheckResult:
         )
 
         status = "up" if result.is_up else "down"
-        updog_checks_total.labels(monitor_id=str(monitor.id), status=status).inc()
+        updog_checks_total.labels(
+            monitor_id=str(monitor.id),
+            status=status,
+            status_code=str(response.status_code),
+        ).inc()
         updog_check_duration_seconds.labels(monitor_id=str(monitor.id)).observe(
             elapsed_ms / 1000
         )
@@ -64,7 +68,11 @@ async def _do_check(monitor: Monitor, client: httpx.AsyncClient) -> CheckResult:
         )
 
         error_type = type(e).__name__
-        updog_checks_total.labels(monitor_id=str(monitor.id), status="down").inc()
+        updog_checks_total.labels(
+            monitor_id=str(monitor.id),
+            status="down",
+            status_code="0",
+        ).inc()
         updog_check_errors_total.labels(error_type=error_type).inc()
         updog_last_check_up.labels(
             monitor_id=str(monitor.id), monitor_name=monitor.name
