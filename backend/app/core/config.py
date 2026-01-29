@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     # Discord webhook for alerts (optional - alerts disabled if not set)
     discord_webhook_url: str | None = None
 
+    # Metrics endpoint auth (for Grafana Cloud scraping)
+    metrics_username: str = "metrics"
+    metrics_password: str | None = None
+
     # Port for the server (Railway sets this via PORT env var)
     port: int = 8000
 
