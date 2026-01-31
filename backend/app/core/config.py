@@ -1,4 +1,4 @@
-APP_VERSION = "0.8.0"
+APP_VERSION = "0.9.0"
 
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
