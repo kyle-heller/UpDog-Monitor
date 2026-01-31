@@ -19,6 +19,6 @@ async def health_check(db: AsyncSession = Depends(get_db)):
     return {
         "status": "healthy" if db_status == "healthy" else "unhealthy",
         "service": "updog-monitor",
-        "version": "0.9.0",
+        "version": APP_VERSION,
         "database": db_status,
     }
