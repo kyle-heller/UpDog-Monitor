@@ -3,32 +3,42 @@
 ## System Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           UpDog Monitor                                  │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│   ┌─────────────┐         ┌─────────────┐         ┌─────────────┐       │
-│   │   React     │  HTTP   │   FastAPI   │  SQL    │  PostgreSQL │       │
-│   │  Frontend   │ ──────> │   Backend   │ ──────> │   Database  │       │
-│   │  (v0.2+)    │  JSON   │             │         │             │       │
-│   └─────────────┘         └──────┬──────┘         └─────────────┘       │
-│                                  │                                       │
-│                                  │                                       │
-│                           ┌──────┴──────┐                               │
-│                           │   Worker    │                               │
-│                           │  (Background)│                               │
-│                           └──────┬──────┘                               │
-│                                  │                                       │
-│                    ┌─────────────┼─────────────┐                        │
-│                    │             │             │                         │
-│                    ▼             ▼             ▼                         │
-│              ┌──────────┐ ┌──────────┐ ┌──────────┐                     │
-│              │ Target 1 │ │ Target 2 │ │ Target N │                     │
-│              │  (URL)   │ │  (URL)   │ │  (URL)   │                     │
-│              └──────────┘ └──────────┘ └──────────┘                     │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           UpDog Monitor (Production)                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌─────────────┐         ┌─────────────┐         ┌─────────────┐          │
+│   │   React     │  HTTPS  │   FastAPI   │  SQL    │  PostgreSQL │          │
+│   │  Frontend   │ ──────> │   Backend   │ ──────> │   Database  │          │
+│   │  (Railway)  │  JSON   │  (Railway)  │         │  (Railway)  │          │
+│   └─────────────┘         └──────┬──────┘         └─────────────┘          │
+│                                  │                                          │
+│                    ┌─────────────┼─────────────┐                           │
+│                    │             │             │                            │
+│                    ▼             ▼             ▼                            │
+│             ┌──────────┐  ┌──────────┐  ┌──────────┐                       │
+│             │ /metrics │  │  Worker  │  │ Discord  │                       │
+│             │ endpoint │  │ (checks) │  │ Webhook  │                       │
+│             └────┬─────┘  └────┬─────┘  └──────────┘                       │
+│                  │             │                                            │
+│                  ▼             ▼                                            │
+│          ┌────────────┐  ┌──────────┐                                      │
+│          │  Grafana   │  │ Target   │                                      │
+│          │   Cloud    │  │  URLs    │                                      │
+│          └────────────┘  └──────────┘                                      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+## Production URLs
+
+| Service | URL |
+|---------|-----|
+| Frontend | https://valiant-amazement-production-5a84.up.railway.app |
+| Backend API | https://updog-monitor-production.up.railway.app |
+| API Docs | https://updog-monitor-production.up.railway.app/docs |
+| Metrics | https://updog-monitor-production.up.railway.app/metrics (auth required) |
+| Grafana | Grafana Cloud (kylehellerdev stack) |
 
 ## Components
 
@@ -39,25 +49,29 @@
 **Responsibilities:**
 - CRUD operations for monitors
 - Query check results and statistics
-- Expose Prometheus metrics (v0.4+)
+- Expose Prometheus metrics (with basic auth)
 - Health check endpoint
+- SLO calculations and error budgets
 
 **Key Files:**
 ```
 backend/app/
-├── main.py          # FastAPI app, lifespan, middleware
+├── main.py              # FastAPI app, lifespan, middleware, metrics auth
 ├── api/
-│   ├── routes.py    # Main router
-│   ├── monitors.py  # Monitor CRUD endpoints
-│   └── health.py    # Health check endpoint
+│   ├── monitors.py      # Monitor CRUD endpoints
+│   ├── health.py        # Health check endpoint
+│   └── slo.py           # SLO report endpoints
 ├── models/
-│   ├── monitor.py   # Monitor SQLAlchemy model
-│   └── result.py    # CheckResult SQLAlchemy model
+│   ├── monitor.py       # Monitor SQLAlchemy model
+│   └── result.py        # CheckResult SQLAlchemy model
 ├── core/
-│   ├── config.py    # Pydantic Settings
-│   └── db.py        # Database engine, session
+│   ├── config.py        # Pydantic Settings (DB, Discord, metrics auth)
+│   ├── db.py            # Database engine, session
+│   ├── metrics.py       # Prometheus metric definitions
+│   ├── notifications.py # Discord webhook alerts
+│   └── slo.py           # SLO calculation logic
 └── worker/
-    └── checker.py   # Background URL checker
+    └── checker.py       # Background URL checker
 ```
 
 ### Worker (Background Process)
@@ -68,7 +82,8 @@ backend/app/
 - Run on a schedule (default: every 60 seconds)
 - HTTP GET each active monitor's URL
 - Record status code, response time, success/failure
-- Trigger Discord alerts on status change (v0.6+)
+- Trigger Discord alerts on status change
+- Update Prometheus metrics
 
 
 ### Database (PostgreSQL)
@@ -81,14 +96,54 @@ backend/app/
 
 See the model definitions in `backend/app/models/` for full schema.
 
-### Frontend (React) - v0.2+
+### Frontend (React + TypeScript)
 
 **Purpose:** Web UI for viewing monitors and status.
 
 **Pages:**
-- Dashboard - Overview of all monitors
-- Monitor Detail - Check history and stats
+- Dashboard - Overview of all monitors with status cards
+- Monitor Detail - Check history, response time charts, SLO status
 - Add/Edit Monitor - Form to manage monitors
+
+**Key Files:**
+```
+frontend/src/
+├── pages/
+│   ├── Dashboard.tsx
+│   ├── MonitorDetail.tsx
+│   └── AddMonitor.tsx
+└── api/
+    └── monitors.ts
+```
+
+### Monitoring (Grafana Cloud)
+
+**Purpose:** Visualize metrics and set up alerting.
+
+**Setup:**
+- Grafana Cloud free tier (kylehellerdev stack)
+- Hosted Collector scrapes `/metrics` endpoint every minute
+- Basic auth protects metrics endpoint
+
+**Dashboard Panels:**
+- Active monitors count
+- Monitor up/down status
+- Availability percentage
+- Response time (p50, p95)
+- Error rate by type
+- API request rate and latency
+
+**File:** `grafana-dashboard.json` (importable)
+
+### CI/CD (GitHub Actions)
+
+**Purpose:** Automated testing and linting on every push.
+
+**Workflow:** `.github/workflows/ci.yml`
+- Runs on push to main and PRs
+- Lints with Ruff
+- Runs pytest test suite
+- DB-dependent tests skipped in CI (no database available)
 
 ## Technology Choices
 
@@ -99,14 +154,7 @@ See the model definitions in `backend/app/models/` for full schema.
 | SQLAlchemy | Raw SQL, Tortoise | Most common Python ORM, good to know |
 | APScheduler | Celery, cron | Simple, in-process, good enough for this scale |
 | React | Vue, Svelte | Most jobs require it, largest ecosystem |
+| Railway | Render, Fly.io | Simple deployment, good free tier, PostgreSQL included |
+| Grafana Cloud | Self-hosted Grafana | Managed service, free tier, no infrastructure to maintain |
 | Docker Compose | Local installs | Reproducible, easy database setup |
 
-## Future Additions
-
-| Version | Addition |
-|---------|----------|
-| 0.4 | Prometheus `/metrics` endpoint |
-| 0.6 | Discord webhook notifications |
-| 0.7 | User authentication |
-| 0.8 | Kubernetes deployment |
-| 1.0 | Azure AKS with live demo |
