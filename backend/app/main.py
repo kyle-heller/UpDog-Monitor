@@ -13,13 +13,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.db import engine
 from app.core.config import settings, APP_VERSION
 
-security = HTTPBasic()
+security = HTTPBasic(auto_error=False)
 
 
-def verify_metrics_auth(credentials: HTTPBasicCredentials = Depends(security)):
+def verify_metrics_auth(
+    credentials: HTTPBasicCredentials | None = Depends(security),
+):
     if not settings.metrics_password:
         # No password set = no auth required
         return True
+
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Basic"},
+        )
 
     correct_username = secrets.compare_digest(
         credentials.username.encode("utf8"),
