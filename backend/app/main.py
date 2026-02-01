@@ -59,6 +59,19 @@ async def lifespan(app: FastAPI):
     # Start the background scheduler
     scheduler = AsyncIOScheduler()
     scheduler.add_job(run_checks, "interval", seconds=60, id="url_checker")
+
+    # Demo mode: seed database and add cleanup job
+    if settings.demo_mode:
+        from app.core.demo import seed_demo_data, cleanup_old_data
+        await seed_demo_data()
+        scheduler.add_job(
+            cleanup_old_data,
+            "interval",
+            hours=24,
+            id="demo_cleanup"
+        )
+        print(f"Demo mode enabled - data retention: {settings.demo_retention_days} days")
+
     scheduler.start()
     print("Scheduler started - checking URLs every 60 seconds")
 

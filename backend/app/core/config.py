@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     # Port for the server (Railway sets this via PORT env var)
     port: int = 8000
 
+    # Demo mode settings
+    demo_mode: bool = False  # Enable auto-seeding and cleanup
+    demo_retention_days: int = 7  # Days of data to keep in demo mode
+
     @field_validator("database_url", mode="before")
     @classmethod
     def fix_database_url(cls, v: str) -> str:
