@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Port for the server (Railway sets this via PORT env var)
     port: int = 8000
 
+    demo_mode: bool = False
+    demo_retention_days: int = 7
+
     @field_validator("database_url", mode="before")
     @classmethod
     def fix_database_url(cls, v: str) -> str:
