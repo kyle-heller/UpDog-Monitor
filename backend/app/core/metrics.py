@@ -3,7 +3,7 @@ from prometheus_client import Counter, Gauge, Histogram
 updog_checks_total = Counter(
     "updog_checks_total",
     "Total URL checks performed",
-    ["monitor_id", "status"],
+    ["monitor_id", "status", "status_code"],
 )
 
 updog_check_duration_seconds = Histogram(
