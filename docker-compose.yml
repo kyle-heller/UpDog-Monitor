@@ -57,6 +57,20 @@ services:
     depends_on:
       - api
 
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: updog-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana:latest
     container_name: updog-grafana
