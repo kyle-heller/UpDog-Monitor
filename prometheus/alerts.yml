@@ -1,0 +1,67 @@
+groups:
+  - name: updog_slo_alerts
+    rules:
+      - alert: AvailabilitySLOBreach
+        expr: |
+          (
+            sum(rate(updog_checks_total{status="up"}[30m]))
+            /
+            sum(rate(updog_checks_total[30m]))
+          ) < 0.995
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Availability SLO breach"
+          description: "Availability has dropped below 99.5% over the last 30 minutes. Current: {{ $value | humanizePercentage }}"
+
+      - alert: LatencySLOBreach
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(updog_check_duration_seconds_bucket[5m])) by (le)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latency SLO breach"
+          description: "p95 latency has exceeded 500ms for the last 5 minutes. Current: {{ $value | humanizeDuration }}"
+
+      # Burn rate >2x means error budget is being consumed too fast
+      - alert: ErrorBudgetBurnRate
+        expr: |
+          (
+            1 - (
+              sum(rate(updog_checks_total{status="up"}[1h]))
+              /
+              sum(rate(updog_checks_total[1h]))
+            )
+          ) / 0.005 > 2
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Error budget burn rate too high"
+          description: "Error budget burn rate: {{ $value }}x (>2x is unsustainable)"
+
+      - alert: MonitorDown
+        expr: updog_last_check_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Monitor {{ $labels.monitor_name }} is down"
+          description: "Monitor {{ $labels.monitor_name }} ({{ $labels.monitor_id }}) has been down for more than 5 minutes."
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(updog_checks_total{status="down"}[5m]))
+          /
+          sum(rate(updog_checks_total[5m]))
+          > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "More than 10% of checks are failing. Current failure rate: {{ $value | humanizePercentage }}"
