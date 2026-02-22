@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: updog-config
+  namespace: updog
+data:
+  PORT: "8000"
+  METRICS_USERNAME: "metrics"
+  DEMO_MODE: "false"
+  CHECK_INTERVAL: "60"
