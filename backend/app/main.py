@@ -12,6 +12,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.db import engine
 from app.core.config import settings, APP_VERSION
+from app.core.azure_monitor import setup_azure_monitor
 
 security = HTTPBasic(auto_error=False)
 
@@ -107,6 +108,8 @@ app.include_router(slo_router, prefix="/api")
 Instrumentator().instrument(app).expose(
     app, dependencies=[Depends(verify_metrics_auth)]
 )
+
+setup_azure_monitor(app)
 
 
 @app.get("/")
