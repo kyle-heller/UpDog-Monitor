@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     demo_mode: bool = False
     demo_retention_days: int = 7
 
+    # Azure Monitor (optional - enables OpenTelemetry export to Log Analytics)
+    applicationinsights_connection_string: str | None = None
+
     @field_validator("database_url", mode="before")
     @classmethod
     def fix_database_url(cls, v: str) -> str:
