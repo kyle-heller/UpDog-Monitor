@@ -40,18 +40,20 @@
 | Metrics | https://updog-monitor-production.up.railway.app/metrics (auth required) |
 | Grafana | Grafana Cloud (kylehellerdev stack) |
 
-## How it fits together
+## Components
 
-The backend is a FastAPI app that does two things: serves a REST API for managing monitors (CRUD, health, SLO reports), and runs a background worker via APScheduler that pings monitored URLs every 60 seconds. Check results go into PostgreSQL, and state changes (up→down or down→up) trigger Discord alerts.
+### Backend (FastAPI)
 
-The frontend is a React SPA that talks to the backend API. In docker-compose it goes through an nginx reverse proxy; on Railway the frontend hits the backend URL directly.
+**Purpose:** REST API for managing monitors and retrieving results.
 
-Prometheus scrapes the `/metrics` endpoint (basic auth protected) every 15 seconds. Alert rules evaluate SLO thresholds - availability, latency percentiles, error budget burn rate - and Alertmanager routes firing alerts to Discord. Grafana Cloud dashboards visualize everything.
+**Responsibilities:**
+- CRUD operations for monitors
+- Query check results and statistics
+- Expose Prometheus metrics (with basic auth)
+- Health check endpoint
+- SLO calculations and error budgets
 
-Azure Monitor integration is optional - set the `APPLICATIONINSIGHTS_CONNECTION_STRING` env var and it auto-instruments FastAPI routes via the OpenTelemetry SDK.
-
-## Key file layout
-
+**Key Files:**
 ```
 backend/app/
 ├── main.py              # FastAPI app, lifespan, middleware, metrics auth
@@ -70,7 +72,41 @@ backend/app/
 │   └── slo.py           # SLO calculation logic
 └── worker/
     └── checker.py       # Background URL checker
+```
 
+### Worker (Background Process)
+
+**Purpose:** Periodically ping monitored URLs and store results.
+
+**Responsibilities:**
+- Run on a schedule (default: every 60 seconds)
+- HTTP GET each active monitor's URL
+- Record status code, response time, success/failure
+- Trigger Discord alerts on status change
+- Update Prometheus metrics
+
+
+### Database (PostgreSQL)
+
+**Purpose:** Persistent storage for monitors and check results.
+
+**Tables:**
+- `monitors` - URLs to monitor
+- `check_results` - Historical check data
+
+See the model definitions in `backend/app/models/` for full schema.
+
+### Frontend (React + TypeScript)
+
+**Purpose:** Web UI for viewing monitors and status.
+
+**Pages:**
+- Dashboard - Overview of all monitors with status cards
+- Monitor Detail - Check history, response time charts, SLO status
+- Add/Edit Monitor - Form to manage monitors
+
+**Key Files:**
+```
 frontend/src/
 ├── pages/
 │   ├── Dashboard.tsx
@@ -80,6 +116,52 @@ frontend/src/
     └── monitors.ts
 ```
 
-## CI/CD
+### Monitoring (Prometheus + Grafana)
 
-GitHub Actions runs on push to main and PRs - lints with Ruff, runs pytest, type-checks the frontend build. On push to main it also builds and pushes Docker images to GHCR. DB-dependent tests are skipped in CI since there's no database available.
+**Purpose:** Visualize metrics, track SLOs, and alert on threshold breaches.
+
+**Setup:**
+- Prometheus scrapes `/metrics` endpoint every 15 seconds
+- Alerting rules evaluate SLO thresholds (availability, latency, burn rate)
+- Alertmanager routes firing alerts to Discord webhook
+- Grafana Cloud free tier (kylehellerdev stack) for dashboards
+- Basic auth protects metrics endpoint
+
+**Dashboard Panels:**
+- Active monitors count
+- Monitor up/down status
+- Availability percentage (SLO compliance)
+- Response time (p50, p95, p99)
+- Error budget remaining and burn rate
+- Alert state table (firing/pending/OK)
+- Error rate by type
+- API request rate and latency
+
+**Key Files:**
+- `grafana-dashboard.json` - Importable dashboard
+- `prometheus/alerts.yml` - SLO alerting rules
+- `prometheus/alertmanager.yml` - Alert routing config
+
+### Azure Monitor (Optional)
+
+**Purpose:** Export traces and metrics to Azure Application Insights for teams already using Azure.
+
+**Setup:**
+- OpenTelemetry SDK instruments FastAPI routes automatically
+- Traces and metrics exported to Azure Application Insights / Log Analytics
+- Enabled by setting `APPLICATIONINSIGHTS_CONNECTION_STRING` env var
+- Disabled when connection string is not set
+
+**Key File:** `backend/app/core/azure_monitor.py`
+
+### CI/CD (GitHub Actions)
+
+**Purpose:** Automated testing and linting on every push.
+
+**Workflow:** `.github/workflows/ci.yml`
+- Runs on push to main and PRs
+- Lints with Ruff
+- Runs pytest test suite
+- DB-dependent tests skipped in CI (no database available)
+
+
