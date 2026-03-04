@@ -6,7 +6,9 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+RUN groupadd -r app && useradd -r -g app app
+
+COPY --chown=app:app . .
 
 # Railway overrides via PORT env var
 ENV PORT=8000
@@ -14,4 +16,7 @@ ENV PORT=8000
 EXPOSE $PORT
 
 RUN chmod +x start.sh
+
+USER app
+
 CMD ["./start.sh"]
