@@ -78,7 +78,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          file: ./Dockerfile
+          file: ./backend/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/updog-backend:${{ github.sha }}
@@ -88,7 +88,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
-          file: ./Dockerfile
+          file: ./frontend/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/updog-frontend:${{ github.sha }}
