@@ -20,12 +20,20 @@ spec:
         prometheus.io/port: "8000"
         prometheus.io/path: "/metrics"
     spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
       containers:
         - name: backend
-          image: updog-monitor/backend:latest
+          image: ghcr.io/kyle-heller/updog-backend:latest
           ports:
             - containerPort: 8000
               protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           envFrom:
             - configMapRef:
                 name: updog-config

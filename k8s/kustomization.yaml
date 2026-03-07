@@ -16,3 +16,5 @@ resources:
 
 commonLabels:
   app.kubernetes.io/managed-by: kustomize
+  team: platform
+  environment: dev
