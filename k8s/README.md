@@ -21,6 +21,12 @@ kubectl apply -k k8s/
 kubectl get all -n updog
 ```
 
+## ArgoCD
+
+If your cluster runs ArgoCD, these manifests can be deployed via an ArgoCD Application
+that points at this directory. See the Platform-Starter-Kit repo for the Application
+resource and install instructions.
+
 ## Configuration
 
 **ConfigMap** (`configmap.yaml`): Non-sensitive configuration like port, check interval, and metrics username.
