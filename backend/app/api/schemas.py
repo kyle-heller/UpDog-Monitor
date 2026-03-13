@@ -16,6 +16,21 @@ class MonitorUpdate(BaseModel):
     is_active: bool | None = None
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 class MonitorResponse(BaseModel):
     id: int
     name: str

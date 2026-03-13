@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.result import CheckResult
 from app.api.schemas import MonitorCreate, MonitorResponse, MonitorUpdate
 from app.core.db import get_db
+from app.core.security import get_current_user
 from app.models.monitor import Monitor
+from app.models.user import User
 
 router = APIRouter(prefix="/monitors", tags=["monitors"])
 
@@ -26,7 +28,11 @@ async def get_monitor(monitor_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("", response_model=MonitorResponse, status_code=201)
-async def create_monitor(data: MonitorCreate, db: AsyncSession = Depends(get_db)):
+async def create_monitor(
+    data: MonitorCreate,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
     monitor = Monitor(
         name=data.name,
         url=str(data.url),
@@ -40,7 +46,10 @@ async def create_monitor(data: MonitorCreate, db: AsyncSession = Depends(get_db)
 
 @router.put("/{monitor_id}", response_model=MonitorResponse)
 async def update_monitor(
-    monitor_id: int, data: MonitorUpdate, db: AsyncSession = Depends(get_db)
+    monitor_id: int,
+    data: MonitorUpdate,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
 ):
     monitor = await db.get(Monitor, monitor_id)
     if not monitor:
@@ -78,7 +87,11 @@ async def get_monitor_results(
 
 
 @router.delete("/{monitor_id}", status_code=204)
-async def delete_monitor(monitor_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_monitor(
+    monitor_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
     monitor = await db.get(Monitor, monitor_id)
     if not monitor:
         raise HTTPException(status_code=404, detail="Monitor not found")
