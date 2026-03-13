@@ -11,6 +11,11 @@ RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:alpine
 
+# Patch OS-level packages to clear known CVEs
+USER root
+RUN apk update && apk upgrade --no-cache && rm -rf /var/cache/apk/*
+USER nginx
+
 COPY --from=build /app/dist /usr/share/nginx/html
 
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
