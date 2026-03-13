@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     demo_mode: bool = False
     demo_retention_days: int = 7
 
+    # JWT authentication
+    jwt_secret: str = "change-me-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60
+
     # Azure Monitor (optional - enables OpenTelemetry export to Log Analytics)
     applicationinsights_connection_string: str | None = None
 
