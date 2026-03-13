@@ -1,0 +1,2 @@
+# glibc integer overflow — no fix available in Debian base image yet
+CVE-2026-0861
