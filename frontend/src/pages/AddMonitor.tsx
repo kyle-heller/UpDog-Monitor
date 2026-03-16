@@ -1,15 +1,21 @@
-import { useState } from 'react'                                                                                          
-import { useNavigate, Link } from 'react-router-dom'                                                                      
-import { createMonitor } from '../api/monitors'                                                                           
-                                                                                                                          
-function AddMonitor() {                                                                                                   
-  const navigate = useNavigate()                                                                                          
+import { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { createMonitor } from '../api/monitors'
+import { useAuth } from '../context/AuthContext'
+
+function AddMonitor() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const [name, setName] = useState('')                                                                                    
   const [url, setUrl] = useState('')                                                                                      
   const [intervalSeconds, setIntervalSeconds] = useState(60)                                                              
   const [error, setError] = useState<string | null>(null)                                                                 
-  const [submitting, setSubmitting] = useState(false)                                                                     
-                                                                                                                          
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!user) navigate('/login')
+  }, [user, navigate])
+
   const handleSubmit = async (e: React.FormEvent) => {                                                                    
     e.preventDefault()                                                                                                    
     setError(null)                                                                                                        

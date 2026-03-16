@@ -3,10 +3,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import type { Monitor, CheckResult } from '../api/monitors'
 import { getMonitor, getMonitorResults, updateMonitor, deleteMonitor } from '../api/monitors'
+import { useAuth } from '../context/AuthContext'
 
 function MonitorDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [monitor, setMonitor] = useState<Monitor | null>(null)
   const [results, setResults] = useState<CheckResult[]>([])
   const [loading, setLoading] = useState(true) // TODO: auto-refresh results
@@ -122,13 +124,15 @@ function MonitorDetail() {
           <p>Status: {monitor.is_active ? 'Active' : 'Paused'}</p>
           <p>Check interval: {monitor.interval_seconds} seconds</p>
 
-          <div style={{ marginTop: '1rem' }}>
-            <button onClick={() => setEditing(true)}>Edit</button>{' '}
-            <button onClick={handleToggleActive}>
-              {monitor.is_active ? 'Pause' : 'Resume'}
-            </button>{' '}
-            <button onClick={handleDelete} style={{ color: 'red' }}>Delete</button>
-          </div>
+          {user && (
+            <div style={{ marginTop: '1rem' }}>
+              <button onClick={() => setEditing(true)}>Edit</button>{' '}
+              <button onClick={handleToggleActive}>
+                {monitor.is_active ? 'Pause' : 'Resume'}
+              </button>{' '}
+              <button onClick={handleDelete} style={{ color: 'red' }}>Delete</button>
+            </div>
+          )}
         </div>
       )}
 

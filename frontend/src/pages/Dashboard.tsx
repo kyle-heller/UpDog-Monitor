@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Monitor } from '../api/monitors'
 import { getMonitors } from '../api/monitors'
+import { useAuth } from '../context/AuthContext'
 
 function Dashboard() {
+  const { user } = useAuth()
   const [monitors, setMonitors] = useState<Monitor[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +28,7 @@ function Dashboard() {
   return (
     <div>
       <h1>Dashboard</h1>
-      <Link to="/monitors/new">+ Add Monitor</Link>
+      {user && <Link to="/monitors/new">+ Add Monitor</Link>}
       {monitors.length === 0 ? (
         <p>No monitors yet.</p>
       ) : (
