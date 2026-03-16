@@ -1,6 +1,12 @@
 // API base URL - empty for local dev (uses proxy), full URL for production
-// FIXME: error messages are generic, should parse response body for details
 const API_BASE = import.meta.env.VITE_API_URL || ''
+
+import { getToken } from './auth'
+
+function authHeaders(): Record<string, string> {
+  const token = getToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 export interface Monitor {                                                                                                
   id: number                                                                                                              
@@ -53,7 +59,7 @@ export async function createMonitor(data: {
 }): Promise<Monitor> {
   const response = await fetch(`${API_BASE}/api/monitors`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(data),
   })
   if (!response.ok) {
@@ -71,9 +77,9 @@ export async function updateMonitor(
     is_active?: boolean                                                                                                   
   }                                                                                                                       
 ): Promise<Monitor> {                                                                                                     
-  const response = await fetch(`${API_BASE}/api/monitors/${id}`, {                                                                   
-    method: 'PUT',                                                                                                        
-    headers: { 'Content-Type': 'application/json' },                                                                      
+  const response = await fetch(`${API_BASE}/api/monitors/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(data),                                                                                           
   })                                                                                                                      
   if (!response.ok) {                                                                                                     
@@ -83,8 +89,9 @@ export async function updateMonitor(
 }                                                                                                                         
                                                                                                                           
 export async function deleteMonitor(id: string): Promise<void> {                                                          
-  const response = await fetch(`${API_BASE}/api/monitors/${id}`, {                                                                   
-    method: 'DELETE',                                                                                                     
+  const response = await fetch(`${API_BASE}/api/monitors/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
   })                                                                                                                      
   if (!response.ok) {                                                                                                     
     throw new Error('Failed to delete monitor')                                                                           
